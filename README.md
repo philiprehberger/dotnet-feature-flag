@@ -1,5 +1,9 @@
 # Philiprehberger.FeatureFlag
 
+[![CI](https://github.com/philiprehberger/dotnet-feature-flag/actions/workflows/ci.yml/badge.svg)](https://github.com/philiprehberger/dotnet-feature-flag/actions/workflows/ci.yml)
+[![NuGet](https://img.shields.io/nuget/v/Philiprehberger.FeatureFlag.svg)](https://www.nuget.org/packages/Philiprehberger.FeatureFlag)
+[![License](https://img.shields.io/github/license/philiprehberger/dotnet-feature-flag)](LICENSE)
+
 Lightweight feature flags with percentage rollout and user targeting — no external service required.
 
 ## Install
