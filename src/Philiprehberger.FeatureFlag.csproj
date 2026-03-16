@@ -5,13 +5,20 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>Philiprehberger.FeatureFlag</PackageId>
-    <Version>0.1.2</Version>
+    <Version>0.1.3</Version>
     <Authors>Philip Rehberger</Authors>
     <Description>Lightweight feature flags with percentage rollout and user targeting — no external service required</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/philiprehberger/dotnet-feature-flag</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>feature-flag;feature-toggle;rollout;configuration;targeting</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />

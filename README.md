@@ -137,6 +137,12 @@ Assert.False(flags.IsEnabled("beta-feature"));
 | `AddFeatureFlags(Action<FeatureFlagOptions>)` | Registers feature flags with a configuration delegate |
 | `AddFeatureFlags(IConfiguration)` | Registers feature flags from a configuration section |
 
+## Development
+
+```bash
+dotnet build src/Philiprehberger.FeatureFlag.csproj --configuration Release
+```
+
 ## License
 
 MIT
