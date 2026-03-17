@@ -6,7 +6,7 @@
 
 Lightweight feature flags with percentage rollout and user targeting — no external service required.
 
-## Install
+## Installation
 
 ```bash
 dotnet add package Philiprehberger.FeatureFlag
