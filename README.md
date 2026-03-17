@@ -75,6 +75,60 @@ var flags = new FeatureFlags(new FeatureFlagOptions
 flags.IsEnabled("new-checkout", "admin-1"); // true
 ```
 
+### Role-Based Access
+
+Restrict a feature to users with specific roles. When `AllowedRoles` is defined, the user must hold at least one matching role:
+
+```csharp
+var flags = new FeatureFlags(new FeatureFlagOptions
+{
+    Flags = new Dictionary<string, FeatureFlagDefinition>
+    {
+        ["admin-dashboard"] = new(
+            Enabled: true,
+            AllowedRoles: new HashSet<string> { "admin", "manager" })
+    }
+});
+
+flags.IsEnabled("admin-dashboard", "user-1", roles: new[] { "admin" }); // true
+flags.IsEnabled("admin-dashboard", "user-2", roles: new[] { "viewer" }); // false
+```
+
+### A/B Variants
+
+Assign users to experiment variants deterministically. The same user always receives the same variant for a given feature:
+
+```csharp
+var variant = flags.GetVariant(
+    "checkout-experiment",
+    userId: "user-42",
+    variants: new[] { "control", "variant-a", "variant-b" });
+
+// variant is consistently one of the three options for this user
+```
+
+### Context-Based Evaluation
+
+Use `FeatureFlagContext` to pass user identity, roles, and custom properties in a single object:
+
+```csharp
+var context = new FeatureFlagContext
+{
+    UserId = "user-42",
+    Roles = new[] { "beta-tester" },
+    Properties = new Dictionary<string, string>
+    {
+        ["region"] = "eu-west",
+        ["plan"] = "pro"
+    }
+};
+
+if (flags.IsEnabled("new-checkout", context))
+{
+    // feature is on for this context
+}
+```
+
 ### Dependency Injection
 
 Register with `IServiceCollection` using a configuration delegate:
@@ -114,6 +168,9 @@ Assert.False(flags.IsEnabled("beta-feature"));
 |--------|-------------|
 | `IsEnabled(featureName)` | Checks if a feature is globally enabled |
 | `IsEnabled(featureName, userId)` | Checks if a feature is enabled for a specific user (supports percentage rollout and targeting) |
+| `IsEnabled(featureName, userId, roles)` | Checks if a feature is enabled with role-based access control |
+| `IsEnabled(featureName, context)` | Checks if a feature is enabled using a `FeatureFlagContext` |
+| `GetVariant(featureName, userId, variants)` | Returns a deterministic variant name for A/B testing |
 
 ### `FeatureFlagDefinition`
 
@@ -123,6 +180,14 @@ Assert.False(flags.IsEnabled("beta-feature"));
 | `Percentage` | `int?` | Optional percentage (0-100) for gradual rollout |
 | `AllowedUsers` | `HashSet<string>?` | User IDs that always have the feature enabled |
 | `AllowedRoles` | `HashSet<string>?` | Role names that always have the feature enabled |
+
+### `FeatureFlagContext`
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `UserId` | `string?` | User identifier for percentage rollout and user targeting |
+| `Roles` | `string[]?` | Role names for role-based targeting |
+| `Properties` | `Dictionary<string, string>?` | Custom properties for evaluation |
 
 ### `FeatureFlagOptions`
 

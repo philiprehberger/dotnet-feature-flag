@@ -41,6 +41,12 @@ public sealed class FeatureFlags : IFeatureFlags
     /// <inheritdoc />
     public bool IsEnabled(string featureName, string userId)
     {
+        return IsEnabled(featureName, userId, roles: null);
+    }
+
+    /// <inheritdoc />
+    public bool IsEnabled(string featureName, string userId, string[]? roles)
+    {
         if (!_options.Flags.TryGetValue(featureName, out var definition))
             return false;
 
@@ -56,10 +62,40 @@ public sealed class FeatureFlags : IFeatureFlags
         if (definition.Percentage is not null)
         {
             var hash = ComputePercentage(featureName, userId);
-            return hash < definition.Percentage.Value;
+            if (hash >= definition.Percentage.Value)
+                return false;
+        }
+
+        // Check role-based access control
+        if (definition.AllowedRoles is { Count: > 0 })
+        {
+            if (roles is null || roles.Length == 0)
+                return false;
+
+            return roles.Any(r => definition.AllowedRoles.Contains(r));
         }
 
         return true;
+    }
+
+    /// <inheritdoc />
+    public bool IsEnabled(string featureName, FeatureFlagContext context)
+    {
+        if (context.UserId is not null)
+            return IsEnabled(featureName, context.UserId, context.Roles);
+
+        return IsEnabled(featureName);
+    }
+
+    /// <inheritdoc />
+    public string? GetVariant(string featureName, string userId, string[] variants)
+    {
+        if (variants.Length == 0)
+            return null;
+
+        var hash = ComputeHash(featureName, userId);
+        var index = (int)(hash % (uint)variants.Length);
+        return variants[index];
     }
 
     /// <summary>
@@ -80,14 +116,21 @@ public sealed class FeatureFlags : IFeatureFlags
     }
 
     /// <summary>
+    /// Computes a deterministic hash value from a feature name and user ID.
+    /// </summary>
+    private static uint ComputeHash(string featureName, string userId)
+    {
+        var input = $"{featureName}:{userId}";
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(input));
+        return BitConverter.ToUInt32(hash, 0);
+    }
+
+    /// <summary>
     /// Computes a deterministic percentage (0–99) from a feature name and user ID
     /// to ensure consistent rollout assignment.
     /// </summary>
     private static int ComputePercentage(string featureName, string userId)
     {
-        var input = $"{featureName}:{userId}";
-        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(input));
-        var value = BitConverter.ToUInt32(hash, 0);
-        return (int)(value % 100);
+        return (int)(ComputeHash(featureName, userId) % 100);
     }
 }

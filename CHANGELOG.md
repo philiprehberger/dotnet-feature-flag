@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0
+
+- Add `GetVariant` for A/B testing with consistent user hashing
+- Add role-based access control to `IsEnabled`
+- Add `FeatureFlagContext` for rich context-based evaluation
+
 ## 0.1.3
 
 - Add Development section to README
