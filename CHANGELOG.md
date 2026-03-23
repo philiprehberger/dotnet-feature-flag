@@ -1,20 +1,25 @@
 # Changelog
-n## 0.2.1 (2026-03-17)
+
+## 0.2.2 (2026-03-22)
+
+- Add dates to changelog entries
+
+## 0.2.1 (2026-03-17)
 
 - Rename Install section to Installation in README per package guide
 
-## 0.2.0
+## 0.2.0 (2026-03-16)
 
 - Add `GetVariant` for A/B testing with consistent user hashing
 - Add role-based access control to `IsEnabled`
 - Add `FeatureFlagContext` for rich context-based evaluation
 
-## 0.1.3
+## 0.1.3 (2026-03-16)
 
 - Add Development section to README
 - Add GenerateDocumentationFile, RepositoryType, PackageReadmeFile to .csproj
 
-## 0.1.0 (2026-03-15)
+## 0.1.0 (2026-03-16)
 
 - Initial release
 - Boolean feature flags with simple on/off evaluation
