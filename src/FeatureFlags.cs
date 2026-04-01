@@ -10,14 +10,18 @@ namespace Philiprehberger.FeatureFlag;
 public sealed class FeatureFlags : IFeatureFlags
 {
     private readonly FeatureFlagOptions _options;
+    private readonly TimeProvider _timeProvider;
+
+    /// <inheritdoc />
+    public FeatureFlagAnalytics Analytics { get; }
 
     /// <summary>
     /// Creates a new <see cref="FeatureFlags"/> instance with the specified options.
     /// </summary>
     /// <param name="options">The feature flag options containing flag definitions.</param>
     public FeatureFlags(IOptions<FeatureFlagOptions> options)
+        : this(options.Value, TimeProvider.System, new FeatureFlagAnalytics())
     {
-        _options = options.Value;
     }
 
     /// <summary>
@@ -25,17 +29,38 @@ public sealed class FeatureFlags : IFeatureFlags
     /// </summary>
     /// <param name="options">The feature flag options containing flag definitions.</param>
     public FeatureFlags(FeatureFlagOptions options)
+        : this(options, TimeProvider.System, new FeatureFlagAnalytics())
+    {
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="FeatureFlags"/> instance with explicit dependencies.
+    /// </summary>
+    /// <param name="options">The feature flag options containing flag definitions.</param>
+    /// <param name="timeProvider">The time provider used for time-based scheduling.</param>
+    /// <param name="analytics">The analytics tracker for recording evaluation statistics.</param>
+    public FeatureFlags(FeatureFlagOptions options, TimeProvider timeProvider, FeatureFlagAnalytics analytics)
     {
         _options = options;
+        _timeProvider = timeProvider;
+        Analytics = analytics;
     }
 
     /// <inheritdoc />
     public bool IsEnabled(string featureName)
     {
         if (!_options.Flags.TryGetValue(featureName, out var definition))
+        {
+            Analytics.Record(featureName, false);
             return false;
+        }
 
-        return definition.Enabled;
+        var result = definition.Enabled
+            && IsWithinSchedule(definition)
+            && IsDependencySatisfied(definition);
+
+        Analytics.Record(featureName, result);
+        return result;
     }
 
     /// <inheritdoc />
@@ -48,33 +73,51 @@ public sealed class FeatureFlags : IFeatureFlags
     public bool IsEnabled(string featureName, string userId, string[]? roles)
     {
         if (!_options.Flags.TryGetValue(featureName, out var definition))
+        {
+            Analytics.Record(featureName, false, userId);
             return false;
+        }
 
-        if (!definition.Enabled)
+        if (!definition.Enabled || !IsWithinSchedule(definition) || !IsDependencySatisfied(definition))
+        {
+            Analytics.Record(featureName, false, userId);
             return false;
+        }
 
         // Check if user is explicitly allowed
         if (definition.AllowedUsers is not null &&
             definition.AllowedUsers.Contains(userId))
+        {
+            Analytics.Record(featureName, true, userId);
             return true;
+        }
 
         // If percentage is set, evaluate rollout
         if (definition.Percentage is not null)
         {
             var hash = ComputePercentage(featureName, userId);
             if (hash >= definition.Percentage.Value)
+            {
+                Analytics.Record(featureName, false, userId);
                 return false;
+            }
         }
 
         // Check role-based access control
         if (definition.AllowedRoles is { Count: > 0 })
         {
             if (roles is null || roles.Length == 0)
+            {
+                Analytics.Record(featureName, false, userId);
                 return false;
+            }
 
-            return roles.Any(r => definition.AllowedRoles.Contains(r));
+            var result = roles.Any(r => definition.AllowedRoles.Contains(r));
+            Analytics.Record(featureName, result, userId);
+            return result;
         }
 
+        Analytics.Record(featureName, true, userId);
         return true;
     }
 
@@ -113,6 +156,38 @@ public sealed class FeatureFlags : IFeatureFlags
         }
 
         return new FeatureFlags(new FeatureFlagOptions { Flags = definitions });
+    }
+
+    /// <summary>
+    /// Checks whether the current time falls within the flag's scheduled window.
+    /// </summary>
+    private bool IsWithinSchedule(FeatureFlagDefinition definition)
+    {
+        var now = _timeProvider.GetUtcNow();
+
+        if (definition.EnableFrom is not null && now < definition.EnableFrom.Value)
+            return false;
+
+        if (definition.EnableUntil is not null && now >= definition.EnableUntil.Value)
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks whether the flag's dependency (if any) is satisfied.
+    /// </summary>
+    private bool IsDependencySatisfied(FeatureFlagDefinition definition)
+    {
+        if (definition.DependsOn is null)
+            return true;
+
+        if (!_options.Flags.TryGetValue(definition.DependsOn, out var dependency))
+            return false;
+
+        return dependency.Enabled
+            && IsWithinSchedule(dependency)
+            && IsDependencySatisfied(dependency);
     }
 
     /// <summary>

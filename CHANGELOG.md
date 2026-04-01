@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 (2026-03-31)
+
+- Add time-based scheduling with `EnableFrom` and `EnableUntil` on `FeatureFlagDefinition`
+- Add flag dependencies with `DependsOn` for conditional flag activation
+- Add `FeatureFlagAnalytics` for tracking evaluation counts, enabled/disabled ratios, and unique users
+- Add `Analytics` property to `IFeatureFlags` interface
+- Add xUnit test project with full coverage of all features
+
 ## 0.2.5 (2026-03-31)
 
 - Standardize README to 3-badge format with emoji Support section

@@ -7,9 +7,9 @@
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <PackageId>Philiprehberger.FeatureFlag</PackageId>
-    <Version>0.2.5</Version>
+    <Version>0.3.0</Version>
     <Authors>Philip Rehberger</Authors>
-    <Description>Lightweight feature flags with percentage rollout and user targeting — no external service required.</Description>
+    <Description>Lightweight feature flags with percentage rollout, user targeting, time-based scheduling, and analytics — no external service required.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/philiprehberger/dotnet-feature-flag</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

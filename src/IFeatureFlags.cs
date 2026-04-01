@@ -6,6 +6,10 @@ namespace Philiprehberger.FeatureFlag;
 public interface IFeatureFlags
 {
     /// <summary>
+    /// Gets the analytics tracker for recording and querying flag evaluation statistics.
+    /// </summary>
+    FeatureFlagAnalytics Analytics { get; }
+    /// <summary>
     /// Checks whether the specified feature is globally enabled.
     /// </summary>
     /// <param name="featureName">The name of the feature flag to evaluate.</param>

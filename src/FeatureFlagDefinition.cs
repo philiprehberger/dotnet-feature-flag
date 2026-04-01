@@ -16,8 +16,23 @@ namespace Philiprehberger.FeatureFlag;
 /// Optional set of role names that should always have the feature enabled,
 /// regardless of the percentage setting.
 /// </param>
+/// <param name="EnableFrom">
+/// Optional start time for the feature flag. The flag is inactive before this time,
+/// even if <paramref name="Enabled"/> is <c>true</c>.
+/// </param>
+/// <param name="EnableUntil">
+/// Optional end time for the feature flag. The flag is inactive after this time,
+/// even if <paramref name="Enabled"/> is <c>true</c>.
+/// </param>
+/// <param name="DependsOn">
+/// Optional name of another feature flag that must also be enabled for this flag
+/// to be active. Creates a dependency chain between flags.
+/// </param>
 public record FeatureFlagDefinition(
     bool Enabled,
     int? Percentage = null,
     HashSet<string>? AllowedUsers = null,
-    HashSet<string>? AllowedRoles = null);
+    HashSet<string>? AllowedRoles = null,
+    DateTimeOffset? EnableFrom = null,
+    DateTimeOffset? EnableUntil = null,
+    string? DependsOn = null);
